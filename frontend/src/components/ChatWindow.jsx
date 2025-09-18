@@ -48,7 +48,7 @@ const ChatWindow = ({ chat, onBack, onUpdateChats }) => {
       const token = Cookies.get("token");
       if (token) {
         const payload = JSON.parse(atob(token.split(".")[1]));
-        return payload.id;
+        return payload._id || payload.id || payload.userId;
       }
     } catch (error) {
       console.error("Error getting user ID:", error);
@@ -227,6 +227,53 @@ const ChatWindow = ({ chat, onBack, onUpdateChats }) => {
           messages.map((message) => {
             const isOwn = message.sender._id === currentUserId;
             return (
+              // <div
+              //   key={message._id}
+              //   className={`flex ${isOwn ? "justify-end" : "justify-start"}`}
+              // >
+              //   <div
+              //     className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+              //       isOwn
+              //         ? "bg-blue-500 text-white"
+              //         : "bg-gray-200 text-gray-900"
+              //     }`}
+              //   >
+              //     {message.messageType === "text" ? (
+              //       <p>{message.content}</p>
+              //     ) : (
+              //       <div className="flex items-center">
+              //         <audio
+              //           src={message.voiceUrl}
+              //           controls
+              //           className="flex-shrink-0 w-40 md:w-60 lg:w-72"
+              //           style={{ minWidth: "160px" }}
+              //         >
+              //           Your browser does not support the audio element.
+              //         </audio>
+              //         <span className="ml-2 text-xs opacity-75 whitespace-nowrap">
+              //           {formatTime(message.duration)}
+              //         </span>
+              //       </div>
+              //     )}
+              //     <div className="flex items-center justify-between mt-1">
+              //       <p
+              //         className={`text-xs ${
+              //           isOwn ? "text-blue-100" : "text-gray-500"
+              //         }`}
+              //       >
+              //         {formatMessageTime(message.createdAt)}
+              //       </p>
+              //       {isOwn && (
+              //         <button
+              //           onClick={() => handleDeleteMessage(message._id)}
+              //           className="ml-2 opacity-75 hover:opacity-100"
+              //         >
+              //           <Trash2 className="w-3 h-3" />
+              //         </button>
+              //       )}
+              //     </div>
+              //   </div>
+              // </div>
               <div
                 key={message._id}
                 className={`flex ${isOwn ? "justify-end" : "justify-start"}`}
@@ -238,6 +285,16 @@ const ChatWindow = ({ chat, onBack, onUpdateChats }) => {
                       : "bg-gray-200 text-gray-900"
                   }`}
                 >
+                  {/* Sender Name */}
+                  <p
+                    className={`text-xs font-semibold mb-1 ${
+                      isOwn ? "text-blue-100" : "text-gray-700"
+                    }`}
+                  >
+                    {message.sender?.username}
+                  </p>
+
+                  {/* Message Content */}
                   {message.messageType === "text" ? (
                     <p>{message.content}</p>
                   ) : (
@@ -247,14 +304,14 @@ const ChatWindow = ({ chat, onBack, onUpdateChats }) => {
                         controls
                         className="flex-shrink-0 w-40 md:w-60 lg:w-72"
                         style={{ minWidth: "160px" }}
-                      >
-                        Your browser does not support the audio element.
-                      </audio>
+                      />
                       <span className="ml-2 text-xs opacity-75 whitespace-nowrap">
                         {formatTime(message.duration)}
                       </span>
                     </div>
                   )}
+
+                  {/* Time + Delete */}
                   <div className="flex items-center justify-between mt-1">
                     <p
                       className={`text-xs ${

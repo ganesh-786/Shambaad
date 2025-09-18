@@ -29,7 +29,9 @@ const Home = ({
               <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
                 <MessageCircle className="w-5 h-5 text-white" />
               </div>
-              <span className="text-2xl font-bold text-slate-900">Sambaad</span>
+              <span className="text-2xl font-bold text-slate-900">
+                Shambaad
+              </span>
               {username && (
                 <span className="ml-4 text-blue-600 font-semibold">
                   Welcome, {username}!
