@@ -29,9 +29,7 @@ const Home = ({
               <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
                 <MessageCircle className="w-5 h-5 text-white" />
               </div>
-              <span className="text-2xl font-bold text-slate-900">
-                Sambaad
-              </span>
+              <span className="text-2xl font-bold text-slate-900">Sambaad</span>
               {username && (
                 <span className="ml-4 text-blue-600 font-semibold">
                   Welcome, {username}!
@@ -43,17 +41,17 @@ const Home = ({
               {username ? (
                 <nav className="hidden md:flex items-center space-x-8">
                   <a
-                    href="#"
-                    className="text-slate-700 hover:text-blue-600 font-medium transition-colors"
-                  >
-                    Product
-                  </a>
-                  <a
                     href="#feature"
                     className="text-slate-700 hover:text-blue-600 font-medium transition-colors"
                   >
                     Features
                   </a>
+                  <button
+                    className="text-slate-700 hover:text-blue-600 transition-colors font-medium"
+                    onClick={onChat}
+                  >
+                    <span>Chat</span>
+                  </button>
                   <a
                     href="#pricing"
                     className="text-slate-700 hover:text-blue-600 font-medium transition-colors"
@@ -65,12 +63,6 @@ const Home = ({
                     onClick={onRecord}
                   >
                     <span>Record Note</span>
-                  </button>
-                  <button
-                    className="text-slate-700 hover:text-blue-600 transition-colors font-medium"
-                    onClick={onChat}
-                  >
-                    <span>Chat</span>
                   </button>
                 </nav>
               ) : (
@@ -169,13 +161,16 @@ const Home = ({
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               {username ? (
                 <a href="#RecordNote">
-                <button onClick={onRecord} className="px-8 py-4 bg-red-500 text-white font-medium rounded-xl hover:bg-red-600 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center space-x-2 group">
-                  <Mic className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                  <span>Record Note</span>
-                </button>
-              </a>
+                  <button
+                    onClick={onRecord}
+                    className="px-8 py-4 bg-red-500 text-white font-medium rounded-xl hover:bg-red-600 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center space-x-2 group"
+                  >
+                    <Mic className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                    <span>Record Note</span>
+                  </button>
+                </a>
               ) : (
-                  ""
+                ""
               )}
 
               <a href="#feature">
