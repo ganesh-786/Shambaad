@@ -1,7 +1,20 @@
 import { useState, useEffect, useRef } from "react";
 import { toast } from "react-toastify";
-import { getChatMessages, sendTextMessage, sendVoiceMessage, deleteMessage } from "../api/chat";
-import { ArrowLeft, Send, Mic, Square, Play, Pause, Trash2 } from "lucide-react";
+import {
+  getChatMessages,
+  sendTextMessage,
+  sendVoiceMessage,
+  deleteMessage,
+} from "../api/chat";
+import {
+  ArrowLeft,
+  Send,
+  Mic,
+  Square,
+  Play,
+  Pause,
+  Trash2,
+} from "lucide-react";
 import Cookies from "js-cookie";
 
 const ChatWindow = ({ chat, onBack, onUpdateChats }) => {
@@ -18,7 +31,9 @@ const ChatWindow = ({ chat, onBack, onUpdateChats }) => {
   const chunksRef = useRef([]);
 
   const currentUserId = getCurrentUserId();
-  const otherParticipant = chat.participants.find(p => p._id !== currentUserId);
+  const otherParticipant = chat.participants.find(
+    (p) => p._id !== currentUserId
+  );
 
   useEffect(() => {
     fetchMessages();
@@ -65,7 +80,7 @@ const ChatWindow = ({ chat, onBack, onUpdateChats }) => {
     try {
       setSending(true);
       const message = await sendTextMessage(chat._id, newMessage.trim());
-      setMessages(prev => [...prev, message]);
+      setMessages((prev) => [...prev, message]);
       setNewMessage("");
       onUpdateChats();
     } catch (error) {
@@ -79,7 +94,7 @@ const ChatWindow = ({ chat, onBack, onUpdateChats }) => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const mediaRecorder = new MediaRecorder(stream);
-      
+
       mediaRecorderRef.current = mediaRecorder;
       chunksRef.current = [];
       setRecordingTime(0);
@@ -116,7 +131,9 @@ const ChatWindow = ({ chat, onBack, onUpdateChats }) => {
   const stopRecording = () => {
     if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop();
-      mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
+      mediaRecorderRef.current.stream
+        .getTracks()
+        .forEach((track) => track.stop());
       clearInterval(timerRef.current);
       setIsRecording(false);
     }
@@ -127,8 +144,12 @@ const ChatWindow = ({ chat, onBack, onUpdateChats }) => {
 
     try {
       setSending(true);
-      const message = await sendVoiceMessage(chat._id, audioBlob, recordingTime);
-      setMessages(prev => [...prev, message]);
+      const message = await sendVoiceMessage(
+        chat._id,
+        audioBlob,
+        recordingTime
+      );
+      setMessages((prev) => [...prev, message]);
       setAudioBlob(null);
       setRecordingTime(0);
       onUpdateChats();
@@ -140,11 +161,12 @@ const ChatWindow = ({ chat, onBack, onUpdateChats }) => {
   };
 
   const handleDeleteMessage = async (messageId) => {
-    if (!window.confirm("Are you sure you want to delete this message?")) return;
+    if (!window.confirm("Are you sure you want to delete this message?"))
+      return;
 
     try {
       await deleteMessage(messageId);
-      setMessages(prev => prev.filter(msg => msg._id !== messageId));
+      setMessages((prev) => prev.filter((msg) => msg._id !== messageId));
       toast.success("Message deleted");
     } catch (error) {
       toast.error(error.message);
@@ -154,12 +176,14 @@ const ChatWindow = ({ chat, onBack, onUpdateChats }) => {
   const formatTime = (seconds) => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
-    return `${minutes.toString().padStart(2, "0")}:${remainingSeconds.toString().padStart(2, "0")}`;
+    return `${minutes.toString().padStart(2, "0")}:${remainingSeconds
+      .toString()
+      .padStart(2, "0")}`;
   };
 
   const formatMessageTime = (dateString) => {
     const date = new Date(dateString);
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   };
 
   if (loading) {
@@ -184,7 +208,9 @@ const ChatWindow = ({ chat, onBack, onUpdateChats }) => {
           {otherParticipant?.username?.charAt(0).toUpperCase()}
         </div>
         <div>
-          <h2 className="font-semibold text-gray-900">{otherParticipant?.username}</h2>
+          <h2 className="font-semibold text-gray-900">
+            {otherParticipant?.username}
+          </h2>
           <p className="text-sm text-gray-500">{otherParticipant?.email}</p>
         </div>
       </div>
@@ -193,7 +219,9 @@ const ChatWindow = ({ chat, onBack, onUpdateChats }) => {
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.length === 0 ? (
           <div className="text-center py-8">
-            <p className="text-gray-500">No messages yet. Start the conversation!</p>
+            <p className="text-gray-500">
+              No messages yet. Start the conversation!
+            </p>
           </div>
         ) : (
           messages.map((message) => {
@@ -213,17 +241,26 @@ const ChatWindow = ({ chat, onBack, onUpdateChats }) => {
                   {message.messageType === "text" ? (
                     <p>{message.content}</p>
                   ) : (
-                    <div className="flex items-center space-x-2">
-                      <audio src={message.voiceUrl} controls className="w-full">
+                    <div className="flex items-center">
+                      <audio
+                        src={message.voiceUrl}
+                        controls
+                        className="flex-shrink-0 w-40 md:w-60 lg:w-72"
+                        style={{ minWidth: "160px" }}
+                      >
                         Your browser does not support the audio element.
                       </audio>
-                      <span className="text-xs opacity-75">
+                      <span className="ml-2 text-xs opacity-75 whitespace-nowrap">
                         {formatTime(message.duration)}
                       </span>
                     </div>
                   )}
                   <div className="flex items-center justify-between mt-1">
-                    <p className={`text-xs ${isOwn ? "text-blue-100" : "text-gray-500"}`}>
+                    <p
+                      className={`text-xs ${
+                        isOwn ? "text-blue-100" : "text-gray-500"
+                      }`}
+                    >
                       {formatMessageTime(message.createdAt)}
                     </p>
                     {isOwn && (
@@ -252,14 +289,20 @@ const ChatWindow = ({ chat, onBack, onUpdateChats }) => {
                 <div className="flex items-center space-x-2">
                   <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
                   <span className="text-sm text-gray-600">Recording...</span>
-                  <span className="font-mono text-sm">{formatTime(recordingTime)}</span>
+                  <span className="font-mono text-sm">
+                    {formatTime(recordingTime)}
+                  </span>
                 </div>
               )}
               {audioBlob && !isRecording && (
                 <div className="flex items-center space-x-2">
                   <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                  <span className="text-sm text-gray-600">Voice message ready</span>
-                  <span className="font-mono text-sm">{formatTime(recordingTime)}</span>
+                  <span className="text-sm text-gray-600">
+                    Voice message ready
+                  </span>
+                  <span className="font-mono text-sm">
+                    {formatTime(recordingTime)}
+                  </span>
                 </div>
               )}
             </div>
@@ -300,7 +343,10 @@ const ChatWindow = ({ chat, onBack, onUpdateChats }) => {
       {/* Message Input */}
       {!isRecording && !audioBlob && (
         <div className="p-4 border-t border-gray-200 bg-white">
-          <form onSubmit={handleSendTextMessage} className="flex items-center space-x-2">
+          <form
+            onSubmit={handleSendTextMessage}
+            className="flex items-center space-x-2"
+          >
             <input
               type="text"
               value={newMessage}

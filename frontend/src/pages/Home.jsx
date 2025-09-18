@@ -179,13 +179,23 @@ const Home = ({
                   <ChevronRight className="w-5 h-5 group-hover:scale-110 transition-transform" />
                 </button>
               </a>
-              <button
-                className="px-8 py-4 text-blue-600 font-semibold hover:bg-blue-50 rounded-xl transition-colors border-2 border-blue-600 flex items-center hover:border-blue-700"
-                onClick={onLogin}
-              >
-                <span>Log In</span>
-                <LogInIcon className="w-5 h-5 group-hover:scale-110 transition-transform" />
-              </button>
+              {username ? (
+                <button
+                  className="px-8 py-4 bg-purple-600 text-white font-medium rounded-lg hover:bg-purple-700 transition-colors shadow-sm"
+                  onClick={onChat}
+                >
+                  <span>Let's Chat</span>
+                  <MessageCircle className="w-5 h-5 group-hover:scale-110 transition-transform inline-block ml-2" />
+                </button>
+              ) : (
+                <button
+                  className="px-8 py-4 text-blue-600 font-semibold hover:bg-blue-50 rounded-xl transition-colors border-2 border-blue-600 flex items-center hover:border-blue-700"
+                  onClick={onLogin}
+                >
+                  <span>Log In</span>
+                  <LogInIcon className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                </button>
+              )}
             </div>
           </div>
         </div>
