@@ -17,6 +17,7 @@ const Home = ({
   onLogout,
   onRecord,
   onVoiceNotes,
+  onChat,
 }) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
@@ -65,6 +66,12 @@ const Home = ({
                   >
                     <span>Record Note</span>
                   </button>
+                  <button
+                    className="text-slate-700 hover:text-blue-600 transition-colors font-medium"
+                    onClick={onChat}
+                  >
+                    <span>Chat</span>
+                  </button>
                 </nav>
               ) : (
                 <nav className="hidden md:flex items-center space-x-8">
@@ -103,6 +110,12 @@ const Home = ({
                     onClick={onVoiceNotes}
                   >
                     My Notes
+                  </button>
+                  <button
+                    className="px-6 py-2 bg-purple-600 text-white font-medium rounded-lg hover:bg-purple-700 transition-colors shadow-sm"
+                    onClick={onChat}
+                  >
+                    Chat
                   </button>
                   <button
                     className="px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
