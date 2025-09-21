@@ -16,6 +16,7 @@ import {
   Trash2,
 } from "lucide-react";
 import Cookies from "js-cookie";
+import socketService from "../utils/socket";
 
 const ChatWindow = ({ chat, onBack, onUpdateChats }) => {
   const [messages, setMessages] = useState([]);
@@ -25,10 +26,13 @@ const ChatWindow = ({ chat, onBack, onUpdateChats }) => {
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const [audioBlob, setAudioBlob] = useState(null);
+  const [typingUsers, setTypingUsers] = useState([]);
+  const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef(null);
   const mediaRecorderRef = useRef(null);
   const timerRef = useRef(null);
   const chunksRef = useRef([]);
+  const typingTimeoutRef = useRef(null);
 
   const currentUserId = getCurrentUserId();
   const otherParticipant = chat.participants.find(
@@ -37,11 +41,50 @@ const ChatWindow = ({ chat, onBack, onUpdateChats }) => {
 
   useEffect(() => {
     fetchMessages();
+    
+    // Join chat room
+    socketService.joinChat(chat._id);
+    
+    // Listen for new messages
+    socketService.onMessageReceived((message) => {
+      setMessages((prev) => [...prev, message]);
+      onUpdateChats();
+    });
+    
+    // Listen for typing events
+    socketService.onUserTyping((data) => {
+      if (data.userId !== currentUserId) {
+        setTypingUsers((prev) => {
+          if (!prev.find(user => user.userId === data.userId)) {
+            return [...prev, data];
+          }
+          return prev;
+        });
+      }
+    });
+    
+    socketService.onUserStopTyping((data) => {
+      setTypingUsers((prev) => prev.filter(user => user.userId !== data.userId));
+    });
+    
+    return () => {
+      socketService.leaveChat(chat._id);
+      socketService.offMessageReceived();
+      socketService.offTypingEvents();
+    };
   }, [chat._id]);
 
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  useEffect(() => {
+    return () => {
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+    };
+  }, []);
 
   function getCurrentUserId() {
     try {
@@ -73,14 +116,58 @@ const ChatWindow = ({ chat, onBack, onUpdateChats }) => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
+  const handleInputChange = (e) => {
+    setNewMessage(e.target.value);
+    
+    // Handle typing indicators
+    if (!isTyping) {
+      setIsTyping(true);
+      socketService.startTyping(chat._id, currentUserId, getCurrentUsername());
+    }
+    
+    // Clear existing timeout
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+    
+    // Set new timeout to stop typing
+    typingTimeoutRef.current = setTimeout(() => {
+      setIsTyping(false);
+      socketService.stopTyping(chat._id, currentUserId);
+    }, 1000);
+  };
+
+  const getCurrentUsername = () => {
+    try {
+      const token = Cookies.get("token");
+      if (token) {
+        const payload = JSON.parse(atob(token.split(".")[1]));
+        return payload.username || payload.email?.split("@")[0] || "User";
+      }
+    } catch (error) {
+      console.error("Error getting username:", error);
+    }
+    return "User";
+  };
+
   const handleSendTextMessage = async (e) => {
     e.preventDefault();
     if (!newMessage.trim() || sending) return;
+
+    // Stop typing indicator
+    if (isTyping) {
+      setIsTyping(false);
+      socketService.stopTyping(chat._id, currentUserId);
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+    }
 
     try {
       setSending(true);
       const message = await sendTextMessage(chat._id, newMessage.trim());
       setMessages((prev) => [...prev, message]);
+      socketService.sendMessage(chat._id, message);
       setNewMessage("");
       onUpdateChats();
     } catch (error) {
@@ -150,6 +237,7 @@ const ChatWindow = ({ chat, onBack, onUpdateChats }) => {
         recordingTime
       );
       setMessages((prev) => [...prev, message]);
+      socketService.sendMessage(chat._id, message);
       setAudioBlob(null);
       setRecordingTime(0);
       onUpdateChats();
@@ -212,6 +300,11 @@ const ChatWindow = ({ chat, onBack, onUpdateChats }) => {
             {otherParticipant?.username}
           </h2>
           <p className="text-sm text-white/80">{otherParticipant?.email}</p>
+          {typingUsers.length > 0 && (
+            <p className="text-xs text-white/70 italic">
+              {typingUsers.map(user => user.username).join(', ')} typing...
+            </p>
+          )}
         </div>
       </div>
 
@@ -226,6 +319,7 @@ const ChatWindow = ({ chat, onBack, onUpdateChats }) => {
         ) : (
           messages.map((message) => {
             const isOwn = message.sender._id === currentUserId;
+            const senderName = isOwn ? "You" : message.sender?.username || "Unknown";
             return (
               <div
                 key={message._id}
@@ -244,7 +338,7 @@ const ChatWindow = ({ chat, onBack, onUpdateChats }) => {
                       isOwn ? "text-white/80" : "text-teal-600"
                     }`}
                   >
-                    {message.sender?.username}
+                    {senderName}
                   </p>
 
                   {/* Message Content */}
@@ -360,7 +454,7 @@ const ChatWindow = ({ chat, onBack, onUpdateChats }) => {
             <input
               type="text"
               value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
+              onChange={handleInputChange}
               placeholder="Type a message..."
               className="flex-1 px-4 py-2 border border-teal-200 rounded-full focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white shadow-sm"
               disabled={sending}
